@@ -1,0 +1,33 @@
+workflows:
+  ios-release:
+    name: Alphagram iOS Release
+    max_build_duration: 60
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: br.com.alphagram
+      vars:
+        XCODE_PROJECT: "Alphagram/Alphagram.xcodeproj"
+        XCODE_SCHEME: "Alphagram"
+    scripts:
+      - name: Build iOS
+        script: |
+          xcode-project use-profiles
+          xcodebuild \
+            -project "$XCODE_PROJECT" \
+            -scheme "$XCODE_SCHEME" \
+            -sdk iphoneos \
+            -configuration Release \
+            -archivePath "$CM_BUILD_DIR/Alphagram.xcarchive" \
+            archive
+      - name: Export IPA
+        script: |
+          xcode-project build-ipa \
+            --project "$XCODE_PROJECT" \
+            --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
